@@ -1,0 +1,14 @@
+.dt-mui{
+  color:red ;
+  margin: 60px 240px 70px 230px;
+}
+
+.MuiTabs-flexContainer{
+  justify-content: center !important;
+}
+
+.signin-form{
+  padding: 300px 590px;
+  margin: 20px 200px;
+  min-height: 100vh;
+}
