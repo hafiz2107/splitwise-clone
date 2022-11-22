@@ -42,7 +42,7 @@ export default function CreateGroupManager({ handleDialogueStatus }) {
       };
       axios
         .post(
-          `${process.env.REACT_APP_API_URL}/add-individual-expenses`,
+          `${process.env.REACT_APP_API_URL}/add-group-expenses`,
           payload
         )
         .then((response) => {

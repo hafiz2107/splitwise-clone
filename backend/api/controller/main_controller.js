@@ -1,7 +1,7 @@
 const { ObjectID } = require("bson");
 const responses = require("../utils/responses");
 const { friendLookup, listUsers } = require("../helpers/lookupHelper");
-const { createIndividualExpense } = require("../helpers/expenseHelper");
+const { createIndividualExpense, getTransactionhelper } = require("../helpers/expenseHelper");
 const {
   getDashboard,
   createUserHelper,
@@ -66,10 +66,10 @@ exports.addFriends = async (req, res) => {
   let { friendsList, userId } = req.body;
 
   friendsList = friendsList.map((eachObj) => {
-    return ObjectID(eachObj._id); 
+    return ObjectID(eachObj._id);
   });
   try {
-    const result = await addFriendsHelper(friendsList, userId );
+    const result = await addFriendsHelper(friendsList, userId);
     if (result) {
       return responses.success(res, "Successfully added Friends", null);
     } else {
@@ -93,6 +93,35 @@ exports.createIndividualExpense = async (req, res) => {
   }
 };
 
+exports.createGroupExpense = async (req, res) => {
+  try {
+    let { sharedWith } = req.body;
+    let params = {};
+    let promises = sharedWith.map((eachData) => {
+      params = {
+        amount: req.body.amount,
+        totalShares: sharedWith.length,
+        sharedWith: eachData,
+        createdBy: req.body.createdBy,
+        createdDate: req.body.createdDate,
+        expenseName: req.body.expenseName,
+        type: req.body.type,
+        createdByUsername: req.body.createdByUsername,
+      };
+      createIndividualExpense(params);
+    });
+    Promise.all(promises)
+      .then(() => {
+        res.success(res);
+      })
+      .catch((err) => {
+        responses.failed(res);
+      });
+  } catch (err) {
+    responses.failed(res, err);
+  }
+};
+
 exports.getDashboard = async (req, res) => {
   try {
     const result = await getDashboard(req.query);
@@ -109,3 +138,18 @@ exports.getDashboard = async (req, res) => {
     }
   }
 };
+
+exports.getTransaction = async(req,res)=>{
+  const {id} = req.query
+
+  try{
+    const result = await getTransactionhelper(id)
+    if(result){
+      responses.success(res,"Success",result)
+    }else{
+      responses.noRecords(res)
+    }
+  }catch(err){
+    responses.failed(res,"Failed",err)
+  }
+}

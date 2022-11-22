@@ -1,5 +1,4 @@
 exports.userCollection = "user"
 exports.expenseCollection = "expense"
-exports.sessionCollection = "session"
 exports.groupCollection = "group"
-exports.friendsCollection = "friends"
+exports.transaction = "transactions"

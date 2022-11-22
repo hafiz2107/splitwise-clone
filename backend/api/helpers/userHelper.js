@@ -31,7 +31,7 @@ exports.getUserHelper = ({ username, password }) => {
           resolve(result);
         })
         .catch((err) => {
-          reject(err)
+          reject(err);
         });
     } catch (err) {
       reject({ reason: "ERR", data: err.errmsg });
@@ -70,26 +70,15 @@ exports.getDashboard = ({ userId }) => {
       mongo
         .get(expenseCollection)
         .find({
-          createdBy: ObjectID(userId),
+          $or:[{creator_id: ObjectID(userId)},{borrower_id:ObjectID(userId)}]
         })
         .toArray()
         .then((result) => {
-          mongo
-            .get(expenseCollection)
-            .find({
-              "friends.userId": { $all: [ObjectID(userId)] },
-            })
-            .toArray()
-            .then((rs) => {
-              rs.map((eachObj) => {
-                result.push(eachObj);
-              });
-              if (result.length !== 0 || result !== null) {
-                resolve(result);
-              } else {
-                reject({ reason: "NOREC", data: err.errmsg });
-              }
-            });
+          if (result.length !== 0) {
+            resolve(result);
+          } else {
+            reject({ reason: "NOREC", data:null });
+          }
         });
     } catch (err) {
       reject({ reason: "ERR", data: err.errmsg });

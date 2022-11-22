@@ -33,7 +33,7 @@ import InputField from "../shared/InputField";
       const payload = {
         createdBy : localStorage.getItem('_id'),
         amount : data.expense,
-        sharedWith:[data.friendsList],
+        sharedWith:data.friendsList,
         createdDate:FormatDate(new Date()),
         totalShares:1,
         expenseName:data.expenseName,

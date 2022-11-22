@@ -7,6 +7,7 @@ import "../styles/App.css";
 import CreateGroupManager from "../components/CreateGroupComponent/CreateGroupManager";
 import AddFriendsManager from "../components/AddFriendsComponent/AddFriendsComponent";
 import IndividualExpenseManager from "../components/AddExpenseComponent/AddIndividualExpenses";
+import ViewTransactionsManager from "../components/ViewTransactionsComponent/ViewTransactionsManager";
 import { useEffect } from "react";
 import axios from "axios";
 import { ToastError } from "../common/functions";
@@ -24,7 +25,9 @@ export default function Home() {
   const [addExpense, setAddExpense] = useState(false);
   const [friends, setAddFriends] = useState(false);
   const [data, setData] = useState({});
+  const [transactions, setTransactions] = useState("");
   const navigation = useNavigate();
+
   useEffect(() => {
     axios
       .get(
@@ -33,35 +36,30 @@ export default function Home() {
         }/get-dashboard?userId=${localStorage.getItem("_id")}`
       )
       .then((result) => {
-        if (result.data.status === 200 && result.data.success) {
-          let row = [];
-          result.data.data.map((eachData, i) => {
-            return eachData.friends.map((eachFriend, i) => {
-              return row.push({
-                id: eachFriend["_id"] + Math.random(),
-                transactionName: eachFriend.expenseName,
-                message:
-                  eachData.type === "Individual"
-                    ? localStorage.getItem("_id") ===
-                        eachFriend["userId"].toString() && eachFriend.toGive
-                      ? `You owe ${eachFriend.amountToPay} to ${eachData.createdByUsername}`
-                      : `${eachFriend.username} owes you ${eachFriend.amountToPay}`
-                    : localStorage.getItem("_id") ===
-                      eachData["createdBy"].toString()
-                    ? `${eachFriend.username} owes you ${eachFriend.amountToPay}`
-                    : `${
-                        eachFriend.username === localStorage.getItem("username")
-                          ? "You"
-                          : eachFriend.username
-                      } Owes ${eachFriend.amountToPay} to ${
-                        eachData.createdByUsername
-                      }`,
-                date: eachData.createdDate,
-                type: eachData.type,
-              });
+        if (
+          (result.data.status === 200 || result.data.status === 204) &&
+          result.data.success
+        ) {
+          if (result.data.data.length > 0) {
+            let row = [];
+            result.data.data.map((eachData) => {
+              !eachData.settled_up &&
+                row.push({
+                  id: eachData["_id"],
+                  date: eachData.created_date,
+                  transactionName: eachData.expenseName,
+                  message:
+                    eachData.creator_id.toString() ===
+                    localStorage.getItem("_id")
+                      ? `${eachData.borrower.username} owes you ${eachData.split_amount}`
+                      : `You owes ${eachData.creator.username} ${eachData.split_amount}`,
+                  type: eachData.type,
+                });
             });
-          });
-          setData(row);
+            setData(row);
+          } else {
+            setData([]);
+          }
         } else {
           ToastError("Unautherised Access");
           navigation("/");
@@ -85,6 +83,7 @@ export default function Home() {
     createGroup && setCreateGroup(status);
     friends && setAddFriends(status);
     addExpense && setAddExpense(status);
+    transactions && setTransactions(status)
   };
   const handleCreateGroup = () => {
     setCreateGroup(true);
@@ -95,10 +94,16 @@ export default function Home() {
   const handleAddExpense = () => {
     setAddExpense(true);
   };
-  const handleLogout = ()=>{
-    localStorage.clear()
-    navigation('/')
-  }
+  const handleLogout = () => {
+    localStorage.clear();
+    navigation("/");
+  };
+
+  const handleRowClick = (params) => {
+    const { id } = params.row;
+    setTransactions(id);
+  };
+
   return (
     <>
       <div className="dt-mui">
@@ -108,6 +113,7 @@ export default function Home() {
           pageSize={5}
           rowsPerPageOptions={[5]}
           style={{ height: 400, width: "100%" }}
+          onRowClick={handleRowClick}
         />
       </div>
       <Container>
@@ -134,6 +140,12 @@ export default function Home() {
         {addExpense && (
           <IndividualExpenseManager
             handleDialogueStatus={handleDialogueStatus}
+          />
+        )}
+        {transactions && (
+          <ViewTransactionsManager
+            handleDialogueStatus={handleDialogueStatus}
+            transactionId={transactions}
           />
         )}
       </Container>
