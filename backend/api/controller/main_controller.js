@@ -112,7 +112,7 @@ exports.createGroupExpense = async (req, res) => {
     });
     Promise.all(promises)
       .then(() => {
-        res.success(res);
+        responses.success(res);
       })
       .catch((err) => {
         responses.failed(res);

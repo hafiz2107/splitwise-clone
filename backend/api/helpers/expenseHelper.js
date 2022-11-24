@@ -35,22 +35,41 @@ exports.createIndividualExpense = ({
       group: type == "Group" ? "group_id" : null,
       split_amount: parseFloat(amountPerPerson),
     };
-    let result = await checkIfTheUserOwesSomeOne(
+
+    // Checking if the user owes to the shared with person
+    // If the result is null creatign a new record with logged in user
+    let result = await checkIfTheUserOwesToTheSharedWith(
       expenses.creator_id,
       expenses.borrower_id
     );
-
+    
     if (result == null) {
-      const {insertedId} = await createNewExpense(expenses);
-      createTransactions(
-        insertedId,
-        expenseName,
-        amount,
-        totalShares + 1,
-        type,
-        expenses.split_amount,
-        createdByUsername
+      // check if the user record already Exist with the same borrower
+      let result = await checkIfTheUserOwesToTheSharedWith(
+        expenses.borrower_id,
+        expenses.creator_id,
       );
+      if( result !== null){
+        console.log("already Exists -> ",expenses.split_amount);
+        updateAmount(
+          expenses.borrower_id,
+          expenses.creator_id,
+          expenses.split_amount,
+          false,
+          expenseName
+        );
+      }else{
+        const { insertedId } = await createNewExpense(expenses)
+        createTransactions(
+          insertedId,
+          expenseName,
+          amount,
+          totalShares + 1,
+          type,
+          expenses.split_amount,
+          createdByUsername
+        );
+      }
       resolve(true);
     } else {
       let settled_up, amountToSettle;
@@ -97,6 +116,7 @@ exports.createIndividualExpense = ({
         resolve(true);
       }
       if (result.split_amount - amountPerPerson < 0) {
+        console.log("At Last If");
         expenses = {
           ...expenses,
           split_amount:
@@ -110,7 +130,7 @@ exports.createIndividualExpense = ({
           expenseName
         );
 
-        let resultOfCheckUser = await checkIfTheUserOwesSomeOne(
+        let resultOfCheckUser = await checkIfTheUserOwesToTheSharedWith(
           expenses.borrower_id,
           expenses.creator_id
         );
@@ -162,23 +182,23 @@ exports.getTransactionhelper = (id) => {
         .find({ trans_id: ObjectID(id) })
         .toArray()
         .then((result) => {
-          if(result.length > 0){
+          if (result.length > 0) {
             resolve(result);
-          }else{
-            resolve(false)
+          } else {
+            resolve(false);
           }
         })
         .catch((err) => {
-          reject({ reason: "ERR", data: null })
+          reject({ reason: "ERR", data: null });
         });
     } catch (err) {
-      reject({ reason: "ERR", data: err.errmsg })
+      reject({ reason: "ERR", data: err.errmsg });
     }
   });
 };
 
 // Check if the user Owes to the person in the added friend
-function checkIfTheUserOwesSomeOne(creator_id, borrower_id) {
+function checkIfTheUserOwesToTheSharedWith(creator_id, borrower_id) {
   return mongo
     .get(expenseCollection)
     .findOne({
@@ -239,6 +259,7 @@ function updateAmount(
         }
       )
       .then((updatedResult) => {
+        console.log(updatedResult);
         return updatedResult;
       });
   }

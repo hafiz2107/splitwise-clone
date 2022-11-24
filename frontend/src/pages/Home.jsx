@@ -68,15 +68,15 @@ export default function Home() {
   }, [addExpense, createGroup]);
 
   const columns = [
-    { field: "date", headerName: "Date", width: 300, align: "centre" },
-    {
-      field: "transactionName",
-      headerName: "Transaction Name / Group Name",
-      width: 400,
-      align: "centre",
-    },
-    { field: "message", headerName: "Message", width: 400, align: "centre" },
-    { field: "type", headerName: "Type", width: 300, align: "centre" },
+    { field: "date", headerName: "Date", width: 500, align: "centre" },
+    // {
+    //   field: "transactionName",
+    //   headerName: "Transaction Name / Group Name",
+    //   width: 400,
+    //   align: "centre",
+    // },
+    { field: "message", headerName: "Message", width: 480, align: "centre" },
+    { field: "type", headerName: "Type", width: 450, align: "centre" },
   ];
 
   const handleDialogueStatus = (status) => {
